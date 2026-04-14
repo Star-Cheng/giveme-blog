@@ -1,43 +1,76 @@
-# Astro Starter Kit: Minimal
+# 技术随笔博客
 
-```sh
-pnpm create astro@latest -- --template minimal
+基于 Astro 6 + MDX 构建的个人技术博客。
+
+## 快速开始
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+访问 http://localhost:4321
 
-## 🚀 Project Structure
+## 部署
 
-Inside of your Astro project, you'll see the following folders and files:
+### GitHub Pages 自动部署
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+1. 首次使用需要手动推送代码到 GitHub：
+
+```bash
+# 添加 SSH key 到 GitHub
+# https://github.com/settings/keys
+
+# 推送代码
+git push -u origin master
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+2. 在 GitHub 仓库设置中启用 Pages：
+   - Settings → Pages → Source: GitHub Actions
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+3. 推送后 GitHub Actions 会自动部署
 
-Any static assets, like images, can be placed in the `public/` directory.
+### 手动部署
 
-## 🧞 Commands
+```bash
+pnpm build
+# 上传 dist/ 目录到 GitHub Pages
+```
 
-All commands are run from the root of the project, from a terminal:
+## 项目结构
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+```
+src/
+├── content/blog/    # 博客文章 (MDX)
+├── layouts/         # 布局组件
+├── pages/           # 页面
+│   ├── index.astro  # 首页
+│   ├── blog/        # 文章列表
+│   ├── tags/        # 标签页
+│   └── about.astro  # 关于页
+└── styles/          # 样式文件
+```
 
-## 👀 Want to learn more?
+## 写作
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+在 `src/content/blog/` 添加 `.mdx` 文件：
+
+```mdx
+---
+title: "文章标题"
+description: "文章描述"
+date: 2024-03-15
+tags: ["Tag1", "Tag2"]
+---
+
+# 文章内容
+```
+
+## 功能
+
+- [x] 深色/浅色主题
+- [x] 响应式设计
+- [x] 文章目录
+- [x] 标签分类
+- [x] RSS Feed
+- [x] SEO 优化
