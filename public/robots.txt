@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://star-cheng.github.io/sitemap.xml
+Sitemap: https://star-cheng.github.io/giveme-blog/sitemap.xml
