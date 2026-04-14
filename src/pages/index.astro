@@ -1,0 +1,330 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .filter(p => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featuredPosts = posts.filter(p => p.data.featured);
+const recentPosts = posts.slice(0, 5);
+---
+
+<BaseLayout title="技术随笔 - C++, ROS, Python">
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          <span class="hero-line">技术随笔</span>
+        </h1>
+        <p class="hero-subtitle">
+          探索 C++ 深度、ROS 机器人、Python 异步<br />
+          在代码的世界里寻找技术的本质
+        </p>
+        <div class="hero-tags">
+          <span class="tag">C++</span>
+          <span class="tag">ROS2</span>
+          <span class="tag">Python</span>
+          <span class="tag">系统设计</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="featured">
+    <div class="container">
+      <h2 class="section-title">精选文章</h2>
+      <div class="featured-grid">
+        {featuredPosts.map(post => (
+          <a href={`/blog/${post.id}`} class="post-card featured-card">
+            <div class="post-meta">
+              <time datetime={post.data.date.toISOString()}>
+                {post.data.date.toLocaleDateString('zh-CN')}
+              </time>
+              <span class="post-tags">
+                {post.data.tags.slice(0, 2).map(tag => (
+                  <span class="post-tag">{tag}</span>
+                ))}
+              </span>
+            </div>
+            <h3 class="post-title">{post.data.title}</h3>
+            <p class="post-desc">{post.data.description}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="recent">
+    <div class="container">
+      <div class="recent-header">
+        <h2 class="section-title">最新文章</h2>
+        <a href="/blog" class="view-all">查看全部 →</a>
+      </div>
+      <div class="post-list">
+        {recentPosts.map((post, index) => (
+          <a href={`/blog/${post.id}`} class="post-item" style={`--delay: ${index * 0.1}s`}>
+            <time class="post-date" datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString('zh-CN')}
+            </time>
+            <div class="post-info">
+              <h3 class="post-title">{post.data.title}</h3>
+              <p class="post-desc">{post.data.description}</p>
+            </div>
+            <div class="post-tags">
+              {post.data.tags.slice(0, 2).map(tag => (
+                <span class="post-tag">{tag}</span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero Section */
+  .hero {
+    padding: var(--space-section) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .hero-content {
+    max-width: 800px;
+  }
+
+  .hero-title {
+    font-size: var(--text-hero);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: var(--space-6);
+    overflow: hidden;
+  }
+
+  .hero-line {
+    display: block;
+    animation: slideUp 0.8s var(--ease-out-expo) forwards;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  @keyframes slideUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-subtitle {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+    margin-bottom: var(--space-8);
+    animation: fadeIn 1s var(--ease-out-expo) 0.2s forwards;
+    opacity: 0;
+  }
+
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    animation: fadeIn 1s var(--ease-out-expo) 0.4s forwards;
+    opacity: 0;
+  }
+
+  .tag {
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* Featured Section */
+  .featured {
+    padding: var(--space-section) 0;
+  }
+
+  .section-title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-8);
+    position: relative;
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -8px;
+    width: 40px;
+    height: 2px;
+    background: var(--color-accent);
+  }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .post-card {
+    display: block;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    transition: all var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .post-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-subtle);
+  }
+
+  .post-tags {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .post-tag {
+    padding: 2px 8px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+  }
+
+  .post-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+    transition: color var(--duration-fast);
+  }
+
+  .post-card:hover .post-title {
+    color: var(--color-accent);
+  }
+
+  .post-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Recent Section */
+  .recent {
+    padding: var(--space-section) 0;
+  }
+
+  .recent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .recent-header .section-title {
+    margin-bottom: 0;
+  }
+
+  .recent-header .section-title::after {
+    display: none;
+  }
+
+  .view-all {
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    transition: color var(--duration-fast);
+  }
+
+  .view-all:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .post-item {
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    gap: var(--space-6);
+    align-items: center;
+    padding: var(--space-5);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all var(--duration-normal) var(--ease-out-expo);
+    opacity: 0;
+    animation: fadeInUp 0.5s var(--ease-out-expo) var(--delay, 0s) forwards;
+  }
+
+  .post-item:hover {
+    border-color: var(--color-accent);
+    transform: translateX(8px);
+  }
+
+  .post-date {
+    font-size: var(--text-sm);
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+  }
+
+  .post-info .post-title {
+    font-size: var(--text-base);
+    margin-bottom: var(--space-2);
+  }
+
+  .post-info .post-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .post-item {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+
+    .post-tags {
+      display: none;
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

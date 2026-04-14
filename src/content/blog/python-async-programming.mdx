@@ -1,0 +1,107 @@
+---
+title: "Python 异步编程：从 asyncio 到 FastAPI"
+description: "全面介绍 Python 异步编程的核心概念，包括 asyncio 深入理解、异步上下文管理器、以及 FastAPI 高性能服务开发。"
+date: 2024-02-28
+tags: ["Python", "Async", "FastAPI"]
+author: "Star Cheng"
+---
+
+# Python 异步编程：从 asyncio 到 FastAPI
+
+异步编程是现代 Python 开发中不可或缺的技能。本文将带你从 asyncio 的核心概念出发，最终掌握使用 FastAPI 构建高性能 Web 服务。
+
+## 协程与事件循环
+
+协程（Coroutine）是异步编程的基础：
+
+```python
+import asyncio
+
+async def fetch_data():
+    print("开始获取数据...")
+    await asyncio.sleep(1)  # 模拟 I/O 操作
+    print("数据获取完成")
+    return {"id": 1, "name": "Example"}
+
+async def main():
+    result = await fetch_data()
+    print(f"结果: {result}")
+
+asyncio.run(main())
+```
+
+### 事件循环机制
+
+事件循环是异步编程的核心，它负责：
+- 调度协程执行
+- 处理 I/O 事件
+- 管理定时器
+
+## 异步上下文管理器
+
+使用 `async with` 管理资源：
+
+```python
+class AsyncDatabaseConnection:
+    async def __aenter__(self):
+        self.conn = await connect_to_db()
+        return self.conn
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.conn.close()
+
+async def get_users():
+    async with AsyncDatabaseConnection() as conn:
+        users = await conn.query("SELECT * FROM users")
+        return users
+```
+
+## FastAPI 实战
+
+FastAPI 是现代 Python Web 开发的利器：
+
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 启动时
+    await connect_to_cache()
+    yield
+    # 关闭时
+    await close_cache()
+
+app = FastAPI(lifespan=lifespan)
+
+class User(BaseModel):
+    id: int
+    name: str
+    email: str
+
+@app.post("/users", response_model=User)
+async def create_user(user: User):
+    existing = await db.get_user(user.id)
+    if existing:
+        raise HTTPException(status_code=400, detail="用户已存在")
+    return await db.create_user(user)
+```
+
+## 性能对比
+
+| 实现方式 | QPS | 延迟 P99 |
+|----------|-----|----------|
+| 同步 Flask | ~200 | ~50ms |
+| 异步 FastAPI | ~2000 | ~5ms |
+| Go Gin | ~3000 | ~3ms |
+
+## 最佳实践
+
+1. **避免阻塞事件循环** - 使用 `run_in_executor` 处理同步操作
+2. **合理使用连接池** - 避免创建过多连接
+3. **使用流式响应** - 对于大文件使用 `StreamingResponse`
+
+## 总结
+
+异步编程是 Python 高性能服务的基础。掌握 asyncio 和 FastAPI，可以构建出企业级的高并发应用。

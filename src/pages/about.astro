@@ -1,0 +1,261 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="关于 - 技术随笔" description="关于作者和技术博客">
+  <section class="about-page">
+    <div class="container">
+      <div class="about-layout">
+        <header class="about-header">
+          <div class="avatar">
+            <div class="avatar-placeholder">SC</div>
+          </div>
+          <div class="about-intro">
+            <h1 class="about-name">Star Cheng</h1>
+            <p class="about-title">软件工程师 · 机器人技术爱好者</p>
+          </div>
+        </header>
+
+        <div class="about-content">
+          <section class="section">
+            <h2 class="section-title">关于</h2>
+            <p>
+              你好！我是一名专注于机器人系统和 C++ 后端开发的软件工程师。
+              在这个博客中，我会分享关于 C++ 高级特性、ROS 机器人开发、Python 异步编程等技术话题的思考和实践。
+            </p>
+            <p>
+              热爱开源，追求代码的优雅与效率。相信好的技术博客应该既有深度又有可读性，
+              能够帮助读者真正理解问题的本质，而不是停留在表面。
+            </p>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">技术栈</h2>
+            <div class="tech-grid">
+              <div class="tech-item">
+                <h3 class="tech-category">系统编程</h3>
+                <ul class="tech-list">
+                  <li>C++ (C++17/20)</li>
+                  <li>Rust</li>
+                  <li>系统级性能优化</li>
+                </ul>
+              </div>
+              <div class="tech-item">
+                <h3 class="tech-category">机器人</h3>
+                <ul class="tech-list">
+                  <li>ROS2 / ROS</li>
+                  <li>运动规划</li>
+                  <li>SLAM</li>
+                </ul>
+              </div>
+              <div class="tech-item">
+                <h3 class="tech-category">后端 & Web</h3>
+                <ul class="tech-list">
+                  <li>Python / FastAPI</li>
+                  <li>Go</li>
+                  <li>异步架构</li>
+                </ul>
+              </div>
+              <div class="tech-item">
+                <h3 class="tech-category">工具 & DevOps</h3>
+                <ul class="tech-list">
+                  <li>Docker / Kubernetes</li>
+                  <li>CI/CD</li>
+                  <li>Linux</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">联系方式</h2>
+            <div class="contact-links">
+              <a href="https://github.com/star-cheng" class="contact-link" target="_blank" rel="noopener">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                GitHub
+              </a>
+              <a href="mailto:contact@example.com" class="contact-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+                Email
+              </a>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">关于这个博客</h2>
+            <p>
+              这个博客使用 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 构建，
+              部署在 GitHub Pages 上。Astro 的岛屿架构让页面默认零 JS，只有需要交互的地方才会加载必要的脚本，
+              确保了极佳的加载性能和 SEO 效果。
+            </p>
+            <p>
+              设计风格采用 Editorial / 杂志编辑风，追求强 Typography 层次感和独特的技术质感。
+              深色主题为主，适合开发者长时间阅读代码和技术内容。
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-page {
+    padding: var(--space-section) 0;
+  }
+
+  .about-layout {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .about-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .avatar {
+    flex-shrink: 0;
+  }
+
+  .avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-code-keyword));
+    border-radius: var(--radius-xl);
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    font-family: var(--font-serif);
+    color: white;
+  }
+
+  .about-intro {
+    flex: 1;
+  }
+
+  .about-name {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-2);
+  }
+
+  .about-title {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+  }
+
+  .about-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .section-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .section p {
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+    margin-bottom: var(--space-4);
+  }
+
+  .section a {
+    color: var(--color-accent);
+  }
+
+  .section a:hover {
+    color: var(--color-accent-hover);
+  }
+
+  /* Tech Grid */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+  }
+
+  .tech-item {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+
+  .tech-category {
+    font-size: var(--text-base);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--color-text);
+  }
+
+  .tech-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tech-list li {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .tech-list li:last-child {
+    border-bottom: none;
+  }
+
+  /* Contact Links */
+  .contact-links {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    transition: all var(--duration-fast);
+  }
+
+  .contact-link:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 640px) {
+    .about-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .tech-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-links {
+      flex-direction: column;
+    }
+  }
+</style>

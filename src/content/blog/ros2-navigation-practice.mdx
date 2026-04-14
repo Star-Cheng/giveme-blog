@@ -1,0 +1,89 @@
+---
+title: "ROS2 导航栈实战：从配置到优化"
+description: "详细讲解 ROS2 导航栈的配置步骤、参数调优技巧，以及常见问题的解决方案。"
+date: 2024-03-08
+tags: ["ROS2", "Navigation", "Robotics"]
+author: "Star Cheng"
+---
+
+# ROS2 导航栈实战：从配置到优化
+
+ROS2 导航栈是机器人自主导航的核心组件。本文将带你从零开始配置和优化导航栈，实现机器人的自主路径规划和避障。
+
+## 环境准备
+
+首先，确保已安装 ROS2 和相关依赖：
+
+```bash
+sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup
+```
+
+## 配置文件
+
+导航栈的核心配置文件包括：
+
+1. **nav2.yaml** - 主配置文件
+2. **bt_navigator.yaml** - 行为树导航器配置
+3. **planner_server.yaml** - 路径规划器配置
+4. **controller_server.yaml** - 控制器配置
+
+### nav2.yaml 基本配置
+
+```yaml
+amcl:
+  plugin: nav2_amcl::AmclNode
+  type: rcldt
+
+bt_navigator:
+  plugin: nav2_bt_navigator::BtNavigator
+  bt_xml_filename: behavior_trees_nav.xml
+
+controller_server:
+  plugin: nav2_dwb_controller::DwbController
+  critics:
+    - GoalCritic
+    - OrientationCritic
+    - BaseObstacleCritic
+```
+
+## 参数调优
+
+### 1. 定位精度优化
+
+AMCL 粒子滤波器参数调整：
+
+```yaml
+amcl:
+  alpha1: 0.2
+  alpha2: 0.2
+  alpha3: 0.2
+  alpha4: 0.2
+  alpha5: 0.2
+```
+
+### 2. 路径规划优化
+
+```yaml
+planner_server:
+  plugin: nav2_smac_planner::Smoother
+  tolerance: 0.5
+  max_iterations: 100000
+```
+
+## 常见问题解决
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| 机器人原地旋转 | 局部代价地图问题 | 调整 inflation_radius |
+| 路径规划失败 | 起点/终点无效 | 检查粒子初始化 |
+| 碰撞后无法恢复 | 恢复行为配置 | 添加额外恢复策略 |
+
+## 性能优化建议
+
+1. **降低激光雷达频率** - 从 10Hz 降到 5Hz
+2. **减少粒子数量** - 从 2000 降到 1000
+3. **使用下采样** - 对点云数据进行降采样
+
+## 总结
+
+ROS2 导航栈的配置需要耐心调试。通过监控各个节点的性能指标，可以逐步优化导航效果。
