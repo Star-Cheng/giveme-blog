@@ -6,5 +6,6 @@ import mdx from '@astrojs/mdx';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://star-cheng.github.io/giveme-blog',
+  base: '/giveme-blog/',
   integrations: [mdx()]
 });

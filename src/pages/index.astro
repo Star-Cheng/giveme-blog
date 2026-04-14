@@ -8,6 +8,7 @@ const posts = (await getCollection('blog'))
 
 const featuredPosts = posts.filter(p => p.data.featured);
 const recentPosts = posts.slice(0, 5);
+const base = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout title="技术随笔 - C++, ROS, Python">
@@ -59,7 +60,7 @@ const recentPosts = posts.slice(0, 5);
     <div class="container">
       <div class="recent-header">
         <h2 class="section-title">最新文章</h2>
-        <a href="/blog" class="view-all">查看全部 →</a>
+          <a href={`${base}blog`} class="view-all">查看全部 →</a>
       </div>
       <div class="post-list">
         {recentPosts.map((post, index) => (

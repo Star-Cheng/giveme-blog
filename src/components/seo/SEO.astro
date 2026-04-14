@@ -15,9 +15,16 @@ const {
   publishDate,
 } = Astro.props;
 
-const siteUrl = Astro.site?.toString() || 'https://star-cheng.github.io/giveme-blog';
+// Use the base URL for the site
+const base = import.meta.env.BASE_URL;
+const siteUrl = base.endsWith('/') ? base : base + '/';
 const fullTitle = title.includes('技术随笔') ? title : `${title} - 技术随笔`;
-const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
+// Get the pathname without the base prefix
+const urlPathname = Astro.url.pathname;
+const canonicalPath = urlPathname.startsWith(base)
+  ? urlPathname.slice(base.length)
+  : urlPathname;
+const canonicalUrl = `${siteUrl}${canonicalPath}`.replace(/\/+$/, '');
 ---
 
 <!-- Primary Meta Tags -->
@@ -31,7 +38,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image, siteUrl).toString()} />
+<meta property="og:image" content={`${siteUrl}${image}`} />
 <meta property="og:locale" content="zh_CN" />
 
 <!-- Twitter -->
@@ -39,7 +46,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 <meta property="twitter:url" content={canonicalUrl} />
 <meta property="twitter:title" content={fullTitle} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image, siteUrl).toString()} />
+<meta property="twitter:image" content={`${siteUrl}${image}`} />
 
 <!-- Article specific -->
 {article && publishDate && (
@@ -47,4 +54,4 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 )}
 
 <!-- RSS -->
-<link rel="alternate" type="application/rss+xml" title="技术随笔 RSS" href="/rss.xml" />
+<link rel="alternate" type="application/rss+xml" title="技术随笔 RSS" href={`${siteUrl}rss.xml`} />
