@@ -1,12 +1,22 @@
 ---
 import '../styles/global.css';
+import SEO from '../components/seo/SEO.astro';
 
 interface Props {
   title: string;
   description?: string;
+  image?: string;
+  article?: boolean;
+  publishDate?: Date;
 }
 
-const { title, description = '技术博客 - C++, ROS, Python' } = Astro.props;
+const {
+  title,
+  description = '技术博客 - C++, ROS, Python',
+  image,
+  article = false,
+  publishDate,
+} = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -16,8 +26,13 @@ const { title, description = '技术博客 - C++, ROS, Python' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="description" content={description} />
-    <title>{title}</title>
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      article={article}
+      publishDate={publishDate}
+    />
     <script is:inline>
       const theme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', theme);

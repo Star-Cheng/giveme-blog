@@ -18,7 +18,12 @@ const words = post.body?.split(/\s+/).length || 0;
 const readingTime = Math.ceil(words / 200);
 ---
 
-<BaseLayout title={`${post.data.title} - 技术随笔`} description={post.data.description}>
+<BaseLayout
+  title={`${post.data.title} - 技术随笔`}
+  description={post.data.description}
+  article={true}
+  publishDate={post.data.date}
+>
   <article class="post">
     <div class="container">
       <div class="post-layout">
