@@ -15,7 +15,7 @@ const {
   publishDate,
 } = Astro.props;
 
-const siteUrl = 'https://star-cheng.github.io/giveme-blog';
+const siteUrl = Astro.site?.toString() || 'https://star-cheng.github.io/giveme-blog';
 const fullTitle = title.includes('技术随笔') ? title : `${title} - 技术随笔`;
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 ---
@@ -31,7 +31,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={`${siteUrl}${image}`} />
+<meta property="og:image" content={new URL(image, siteUrl).toString()} />
 <meta property="og:locale" content="zh_CN" />
 
 <!-- Twitter -->
@@ -39,7 +39,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 <meta property="twitter:url" content={canonicalUrl} />
 <meta property="twitter:title" content={fullTitle} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={`${siteUrl}${image}`} />
+<meta property="twitter:image" content={new URL(image, siteUrl).toString()} />
 
 <!-- Article specific -->
 {article && publishDate && (
