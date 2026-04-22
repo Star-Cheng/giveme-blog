@@ -24,7 +24,7 @@ const base = import.meta.env.BASE_URL;
           <div class="tag-list">
             <a href={`${base}blog`} class="tag-item active">全部</a>
             {allTags.map(tag => (
-              <a href={`/tags/${tag}`} class="tag-item">{tag}</a>
+              <a href={`${base}tags/${tag}`} class="tag-item">{tag}</a>
             ))}
           </div>
         </aside>
@@ -32,7 +32,7 @@ const base = import.meta.env.BASE_URL;
         <main class="post-grid">
           {posts.map((post, index) => (
             <a
-              href={`/blog/${post.id}`}
+              href={`${base}blog/${post.id}`}
               class="post-card"
               style={`--delay: ${Math.min(index, 10) * 0.05}s`}
             >

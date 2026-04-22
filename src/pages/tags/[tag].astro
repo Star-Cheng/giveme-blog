@@ -16,6 +16,7 @@ const { tag, posts } = Astro.props;
 const filteredPosts = posts
   .filter(p => p.data.tags.includes(tag))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const base = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout title={`标签: ${tag} - 技术随笔`}>
@@ -32,7 +33,7 @@ const filteredPosts = posts
       <div class="post-list">
         {filteredPosts.map((post, index) => (
           <a
-            href={`/blog/${post.id}`}
+            href={`${base}blog/${post.id}`}
             class="post-item"
             style={`--delay: ${index * 0.1}s`}
           >

@@ -45,7 +45,7 @@ const base = import.meta.env.BASE_URL;
             <p class="post-desc">{post.data.description}</p>
             <div class="post-tags">
               {post.data.tags.map(tag => (
-                <a href={`/tags/${tag}`} class="post-tag">{tag}</a>
+                <a href={`${base}tags/${tag}`} class="post-tag">{tag}</a>
               ))}
             </div>
           </header>
