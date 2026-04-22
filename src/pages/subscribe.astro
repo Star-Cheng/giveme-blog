@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ButtondownForm from '../components/subscribe/ButtondownForm.astro';
+---
+
+<BaseLayout title="邮件订阅 - 技术随笔" description="通过 Buttondown 订阅机器人控制算法与工程实践更新">
+  <section class="subscribe-page">
+    <div class="container">
+      <header class="page-header">
+        <h1>邮件订阅</h1>
+        <p>每周精选：控制算法复盘、ROS2 实战、Sim2Real 踩坑记录。</p>
+      </header>
+
+      <div class="page-content">
+        <ButtondownForm
+          title="订阅技术随笔"
+          description="输入邮箱后即可订阅，后续会收到最新文章与系列更新。"
+        />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .subscribe-page {
+    padding: var(--space-section) 0;
+  }
+
+  .page-header {
+    max-width: 700px;
+    margin: 0 auto var(--space-10);
+    text-align: center;
+  }
+
+  .page-header p {
+    color: var(--color-text-muted);
+    margin-top: var(--space-3);
+  }
+
+  .page-content {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+</style>

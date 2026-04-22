@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const toSlug = (name: string) =>
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\u4e00-\u9fa5-]/g, '');
+
+  const posts = (await getCollection('blog')).filter(p => !p.data.draft && p.data.series);
+  const names = [...new Set(posts.map(p => p.data.series?.name).filter(Boolean))] as string[];
+
+  return names.map(name => ({
+    params: { series: toSlug(name) },
+    props: { name },
+  }));
+}
+
+const { name } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const posts = (await getCollection('blog'))
+  .filter(p => !p.data.draft && p.data.series?.name === name)
+  .sort((a, b) => (a.data.series?.order ?? 0) - (b.data.series?.order ?? 0));
+---
+
+<BaseLayout title={`${name} - 系列专题`} description={`阅读系列 ${name} 的全部文章`}>
+  <section class="series-detail">
+    <div class="container">
+      <header class="detail-header">
+        <p class="detail-meta">系列专题 · {posts.length} 篇</p>
+        <h1 class="detail-title">{name}</h1>
+      </header>
+
+      <ol class="detail-list">
+        {posts.map(post => (
+          <li class="detail-item">
+            <span class="item-order">第 {post.data.series?.order} 篇</span>
+            <a class="item-link" href={`${base}blog/${post.id}`}>
+              <h2>{post.data.title}</h2>
+              <p>{post.data.description}</p>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .series-detail {
+    padding: var(--space-section) 0;
+  }
+
+  .detail-header {
+    margin-bottom: var(--space-10);
+  }
+
+  .detail-meta {
+    color: var(--color-text-subtle);
+    font-size: var(--text-sm);
+  }
+
+  .detail-title {
+    margin-top: var(--space-2);
+  }
+
+  .detail-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .detail-item {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  .item-order {
+    color: var(--color-text-subtle);
+    font-size: var(--text-xs);
+  }
+
+  .item-link {
+    display: block;
+    color: var(--color-text);
+    margin-top: var(--space-2);
+  }
+
+  .item-link:hover h2 {
+    color: var(--color-accent);
+  }
+
+  .item-link h2 {
+    font-size: var(--text-xl);
+    transition: color var(--duration-fast);
+    margin-bottom: var(--space-2);
+  }
+
+  .item-link p {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+</style>

@@ -20,20 +20,30 @@ const base = import.meta.env.BASE_URL;
 
       <div class="blog-layout">
         <aside class="sidebar">
-          <h3 class="sidebar-title">标签筛选</h3>
-          <div class="tag-list">
-            <a href={`${base}blog`} class="tag-item active">全部</a>
+          <h3 class="sidebar-title">筛选</h3>
+          <label class="search-label" for="post-search">搜索标题 / 标签</label>
+          <input id="post-search" class="search-input" type="search" placeholder="例如：ROS2 / 协程" />
+
+          <div class="filter-meta">
+            <span id="active-tag-count">已选标签：0</span>
+            <button type="button" id="clear-filters" class="clear-btn">清空</button>
+          </div>
+
+          <div class="tag-list" id="tag-filters">
             {allTags.map(tag => (
-              <a href={`${base}tags/${tag}`} class="tag-item">{tag}</a>
+              <button type="button" class="tag-item" data-tag={tag.toLowerCase()}>{tag}</button>
             ))}
           </div>
         </aside>
 
-        <main class="post-grid">
+        <main class="post-grid" id="post-grid">
           {posts.map((post, index) => (
             <a
               href={`${base}blog/${post.id}`}
               class="post-card"
+              data-post-card
+              data-title={post.data.title.toLowerCase()}
+              data-tags={post.data.tags.join(',').toLowerCase()}
               style={`--delay: ${Math.min(index, 10) * 0.05}s`}
             >
               <div class="post-meta">
@@ -51,11 +61,72 @@ const base = import.meta.env.BASE_URL;
               </div>
             </a>
           ))}
+          <p id="empty-state" class="empty-state" hidden>没有匹配的文章，试试减少筛选条件。</p>
         </main>
       </div>
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const searchInput = document.querySelector('#post-search');
+  const tagButtons = Array.from(document.querySelectorAll('#tag-filters .tag-item'));
+  const clearButton = document.querySelector('#clear-filters');
+  const postCards = Array.from(document.querySelectorAll('[data-post-card]'));
+  const emptyState = document.querySelector('#empty-state');
+  const activeTagCount = document.querySelector('#active-tag-count');
+  const selectedTags = new Set();
+
+  const updateUI = () => {
+    const keyword = searchInput?.value.trim().toLowerCase() ?? '';
+
+    let visibleCount = 0;
+    postCards.forEach(card => {
+      const title = card.getAttribute('data-title') || '';
+      const tags = (card.getAttribute('data-tags') || '').split(',').filter(Boolean);
+      const keywordMatch = !keyword || title.includes(keyword) || tags.some(tag => tag.includes(keyword));
+      const tagMatch = selectedTags.size === 0 || [...selectedTags].every(tag => tags.includes(tag));
+      const visible = keywordMatch && tagMatch;
+      card.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+
+    if (emptyState) {
+      emptyState.hidden = visibleCount > 0;
+    }
+
+    if (activeTagCount) {
+      activeTagCount.textContent = `已选标签：${selectedTags.size}`;
+    }
+  };
+
+  searchInput?.addEventListener('input', updateUI);
+
+  tagButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const tag = button.getAttribute('data-tag');
+      if (!tag) return;
+
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        button.classList.remove('active');
+      } else {
+        selectedTags.add(tag);
+        button.classList.add('active');
+      }
+      updateUI();
+    });
+  });
+
+  clearButton?.addEventListener('click', () => {
+    selectedTags.clear();
+    tagButtons.forEach(button => button.classList.remove('active'));
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    updateUI();
+  });
+</script>
 
 <style>
   .blog-page {
@@ -96,19 +167,65 @@ const base = import.meta.env.BASE_URL;
     margin-bottom: var(--space-4);
   }
 
+  .search-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-subtle);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    margin-bottom: var(--space-4);
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-subtle);
+  }
+
+  .filter-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+  }
+
+  .clear-btn {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-subtle);
+    border-radius: var(--radius-sm);
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+
+  .clear-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
   .tag-list {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: var(--space-2);
   }
 
   .tag-item {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    cursor: pointer;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
     color: var(--color-text-muted);
     transition: all var(--duration-fast);
-    text-align: left;
   }
 
   .tag-item:hover,
@@ -119,12 +236,22 @@ const base = import.meta.env.BASE_URL;
 
   .tag-item.active {
     color: var(--color-accent);
+    border-color: var(--color-accent);
   }
 
   .post-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--space-6);
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    padding: var(--space-8);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-subtle);
+    text-align: center;
   }
 
   .post-card {
@@ -208,8 +335,8 @@ const base = import.meta.env.BASE_URL;
     }
 
     .tag-list {
-      flex-direction: row;
       flex-wrap: nowrap;
+      overflow-x: auto;
     }
 
     .tag-item {

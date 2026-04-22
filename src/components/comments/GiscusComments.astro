@@ -1,0 +1,72 @@
+---
+const {
+  repo,
+  repoId,
+  category,
+  categoryId,
+  mapping = 'pathname',
+  strict = '0',
+  reactionsEnabled = '1',
+  emitMetadata = '0',
+  inputPosition = 'top',
+  lang = 'zh-CN',
+} = {
+  repo: import.meta.env.PUBLIC_GISCUS_REPO,
+  repoId: import.meta.env.PUBLIC_GISCUS_REPO_ID,
+  category: import.meta.env.PUBLIC_GISCUS_CATEGORY,
+  categoryId: import.meta.env.PUBLIC_GISCUS_CATEGORY_ID,
+  mapping: import.meta.env.PUBLIC_GISCUS_MAPPING ?? 'pathname',
+  strict: import.meta.env.PUBLIC_GISCUS_STRICT ?? '0',
+  reactionsEnabled: import.meta.env.PUBLIC_GISCUS_REACTIONS_ENABLED ?? '1',
+  emitMetadata: import.meta.env.PUBLIC_GISCUS_EMIT_METADATA ?? '0',
+  inputPosition: import.meta.env.PUBLIC_GISCUS_INPUT_POSITION ?? 'top',
+  lang: import.meta.env.PUBLIC_GISCUS_LANG ?? 'zh-CN',
+};
+
+const isConfigured = Boolean(repo && repoId && category && categoryId);
+---
+
+<section class="comments-section">
+  <h3 class="comments-title">评论</h3>
+
+  {isConfigured ? (
+    <script
+      src="https://giscus.app/client.js"
+      data-repo={repo}
+      data-repo-id={repoId}
+      data-category={category}
+      data-category-id={categoryId}
+      data-mapping={mapping}
+      data-strict={strict}
+      data-reactions-enabled={reactionsEnabled}
+      data-emit-metadata={emitMetadata}
+      data-input-position={inputPosition}
+      data-theme="preferred_color_scheme"
+      data-lang={lang}
+      crossorigin="anonymous"
+      async
+    ></script>
+  ) : (
+    <p class="comments-tip">
+      评论功能未配置。请在环境变量中设置 Giscus 相关参数后启用。
+    </p>
+  )}
+</section>
+
+<style>
+  .comments-section {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .comments-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-4);
+  }
+
+  .comments-tip {
+    color: var(--color-text-subtle);
+    font-size: var(--text-sm);
+  }
+</style>

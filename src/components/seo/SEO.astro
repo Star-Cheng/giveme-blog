@@ -10,21 +10,19 @@ interface Props {
 const {
   title,
   description,
-  image = '/og-default.png',
+  image,
   article = false,
   publishDate,
 } = Astro.props;
 
-// Use the base URL for the site
 const base = import.meta.env.BASE_URL;
-const siteUrl = base.endsWith('/') ? base : base + '/';
+const site = Astro.site ?? new URL('http://localhost:4321');
+const siteUrl = site.toString();
 const fullTitle = title.includes('技术随笔') ? title : `${title} - 技术随笔`;
-// Get the pathname without the base prefix
-const urlPathname = Astro.url.pathname;
-const canonicalPath = urlPathname.startsWith(base)
-  ? urlPathname.slice(base.length)
-  : urlPathname;
-const canonicalUrl = `${siteUrl}${canonicalPath}`.replace(/\/+$/, '');
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString().replace(/\/+$/, '');
+const defaultImagePath = `${base}og-default.png`;
+const imageUrl = new URL(image ?? defaultImagePath, siteUrl).toString();
+const rssUrl = new URL(`${base}rss.xml`, siteUrl).toString();
 ---
 
 <!-- Primary Meta Tags -->
@@ -38,7 +36,7 @@ const canonicalUrl = `${siteUrl}${canonicalPath}`.replace(/\/+$/, '');
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={`${siteUrl}${image}`} />
+<meta property="og:image" content={imageUrl} />
 <meta property="og:locale" content="zh_CN" />
 
 <!-- Twitter -->
@@ -46,7 +44,7 @@ const canonicalUrl = `${siteUrl}${canonicalPath}`.replace(/\/+$/, '');
 <meta property="twitter:url" content={canonicalUrl} />
 <meta property="twitter:title" content={fullTitle} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={`${siteUrl}${image}`} />
+<meta property="twitter:image" content={imageUrl} />
 
 <!-- Article specific -->
 {article && publishDate && (
@@ -54,4 +52,4 @@ const canonicalUrl = `${siteUrl}${canonicalPath}`.replace(/\/+$/, '');
 )}
 
 <!-- RSS -->
-<link rel="alternate" type="application/rss+xml" title="技术随笔 RSS" href={`${siteUrl}rss.xml`} />
+<link rel="alternate" type="application/rss+xml" title="技术随笔 RSS" href={rssUrl} />

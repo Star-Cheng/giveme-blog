@@ -1,0 +1,112 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+  compact?: boolean;
+}
+
+const {
+  title = '订阅更新',
+  description = '订阅后将收到新文章、系列更新与实战复盘通知。',
+  compact = false,
+} = Astro.props;
+
+const username = import.meta.env.PUBLIC_BUTTONDOWN_USERNAME;
+const action =
+  import.meta.env.PUBLIC_BUTTONDOWN_ACTION ||
+  (username ? `https://buttondown.email/api/emails/embed-subscribe/${username}` : '');
+
+const isConfigured = Boolean(action);
+---
+
+<section class:list={['subscribe-card', compact && 'compact']}>
+  <h3>{title}</h3>
+  <p>{description}</p>
+
+  {isConfigured ? (
+    <form
+      class="subscribe-form"
+      action={action}
+      method="post"
+      target="popupwindow"
+      onsubmit="window.open('https://buttondown.email/' + (this.dataset.username || ''), 'popupwindow')"
+      data-username={username ?? ''}
+    >
+      <label class="sr-only" for="bd-email">邮箱地址</label>
+      <input id="bd-email" type="email" name="email" placeholder="输入你的邮箱" required />
+      <input type="hidden" name="tag" value="blog" />
+      <button type="submit">订阅</button>
+    </form>
+  ) : (
+    <p class="subscribe-tip">未配置 Buttondown，请在 `.env` 中设置 `PUBLIC_BUTTONDOWN_USERNAME`。</p>
+  )}
+</section>
+
+<style>
+  .subscribe-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
+    padding: var(--space-6);
+  }
+
+  .subscribe-card h3 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-2);
+  }
+
+  .subscribe-card p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .subscribe-form {
+    margin-top: var(--space-4);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-2);
+  }
+
+  .subscribe-form input[type='email'] {
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    padding: var(--space-3);
+  }
+
+  .subscribe-form button {
+    border: 1px solid var(--color-accent);
+    background: var(--color-accent);
+    color: #fff;
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+  }
+
+  .subscribe-form button:hover {
+    opacity: 0.92;
+  }
+
+  .subscribe-tip {
+    margin-top: var(--space-4);
+    color: var(--color-text-subtle);
+    font-size: var(--text-xs);
+  }
+
+  .compact {
+    padding: var(--space-5);
+  }
+
+  .compact h3 {
+    font-size: var(--text-lg);
+  }
+
+  @media (max-width: 640px) {
+    .subscribe-form {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

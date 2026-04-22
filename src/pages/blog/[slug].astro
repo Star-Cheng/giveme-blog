@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
+import GiscusComments from '../../components/comments/GiscusComments.astro';
+import ButtondownForm from '../../components/subscribe/ButtondownForm.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -17,6 +19,29 @@ const { Content } = await render(post);
 const words = post.body?.split(/\s+/).length || 0;
 const readingTime = Math.ceil(words / 200);
 const base = import.meta.env.BASE_URL;
+const site = Astro.site ?? new URL('http://localhost:4321');
+const articleUrl = new URL(Astro.url.pathname, site).toString();
+const encodedUrl = encodeURIComponent(articleUrl);
+const encodedTitle = encodeURIComponent(post.data.title);
+const toSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u4e00-\u9fa5-]/g, '');
+
+const allPosts = await getCollection('blog');
+const seriesPosts = post.data.series
+  ? allPosts
+      .filter(p => !p.data.draft && p.data.series?.name === post.data.series?.name)
+      .sort((a, b) => (a.data.series?.order ?? 0) - (b.data.series?.order ?? 0))
+  : [];
+const currentSeriesIndex = seriesPosts.findIndex(p => p.id === post.id);
+const prevSeriesPost = currentSeriesIndex > 0 ? seriesPosts[currentSeriesIndex - 1] : null;
+const nextSeriesPost =
+  currentSeriesIndex >= 0 && currentSeriesIndex < seriesPosts.length - 1
+    ? seriesPosts[currentSeriesIndex + 1]
+    : null;
 ---
 
 <BaseLayout
@@ -48,6 +73,11 @@ const base = import.meta.env.BASE_URL;
                 <a href={`${base}tags/${tag}`} class="post-tag">{tag}</a>
               ))}
             </div>
+            {post.data.series && (
+              <a href={`${base}series/${toSlug(post.data.series.name)}`} class="series-chip">
+                系列：{post.data.series.name} · 第 {post.data.series.order} 篇
+              </a>
+            )}
           </header>
 
           <div class="post-content">
@@ -58,6 +88,60 @@ const base = import.meta.env.BASE_URL;
             <div class="post-nav">
               <a href={`${base}blog`} class="back-link">← 返回文章列表</a>
             </div>
+
+            {post.data.series && (
+              <section class="series-nav">
+                <h3 class="series-title">系列阅读：{post.data.series.name}</h3>
+                <div class="series-links">
+                  {prevSeriesPost ? (
+                    <a href={`${base}blog/${prevSeriesPost.id}`} class="series-link">
+                      ← 上一篇：{prevSeriesPost.data.title}
+                    </a>
+                  ) : (
+                    <span class="series-link disabled">← 已是系列第一篇</span>
+                  )}
+                  {nextSeriesPost ? (
+                    <a href={`${base}blog/${nextSeriesPost.id}`} class="series-link">
+                      下一篇：{nextSeriesPost.data.title} →
+                    </a>
+                  ) : (
+                    <span class="series-link disabled">已是系列最后一篇 →</span>
+                  )}
+                </div>
+              </section>
+            )}
+
+            <section class="share-section">
+              <h3 class="share-title">分享到</h3>
+              <div class="share-actions">
+                <a
+                  class="share-link"
+                  href={`https://service.weibo.com/share/share.php?url=${encodedUrl}&title=${encodedTitle}`}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  微博
+                </a>
+                <a
+                  class="share-link"
+                  href={`https://www.zhihu.com/share?url=${encodedUrl}&title=${encodedTitle}`}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  知乎
+                </a>
+                <button class="share-link share-btn" data-copy-url={articleUrl} type="button">微信/复制链接</button>
+              </div>
+              <p class="share-tip" id="share-tip">点击“微信/复制链接”后会复制链接，便于转发到微信。</p>
+            </section>
+            <div class="subscribe-wrap">
+              <ButtondownForm
+                compact={true}
+                title="喜欢这篇文章？"
+                description="订阅后会收到同主题文章与系列更新提醒。"
+              />
+            </div>
+            <GiscusComments />
           </footer>
         </main>
 
@@ -121,6 +205,19 @@ const base = import.meta.env.BASE_URL;
   document.querySelectorAll('.post-content h2, .post-content h3').forEach(h => {
     observer.observe(h);
   });
+
+  const copyButton = document.querySelector('.share-btn');
+  const shareTip = document.querySelector('#share-tip');
+  copyButton?.addEventListener('click', async () => {
+    const url = copyButton.getAttribute('data-copy-url');
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      if (shareTip) shareTip.textContent = '链接已复制，可直接粘贴到微信或其他社交平台。';
+    } catch {
+      if (shareTip) shareTip.textContent = '复制失败，请手动复制当前页面地址。';
+    }
+  });
 </script>
 
 <style>
@@ -175,6 +272,21 @@ const base = import.meta.env.BASE_URL;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+  }
+
+  .series-chip {
+    display: inline-block;
+    margin-top: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .series-chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
   }
 
   .post-tag {
@@ -366,6 +478,85 @@ const base = import.meta.env.BASE_URL;
     color: var(--color-accent);
   }
 
+  .series-nav {
+    margin-top: var(--space-8);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
+  }
+
+  .series-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-4);
+  }
+
+  .series-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+
+  .series-link {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .series-link:hover {
+    color: var(--color-accent);
+  }
+
+  .series-link.disabled {
+    opacity: 0.6;
+  }
+
+  .share-section {
+    margin-top: var(--space-8);
+  }
+
+  .share-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-3);
+  }
+
+  .share-actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .share-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .share-link:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .share-btn {
+    font: inherit;
+  }
+
+  .share-tip {
+    margin-top: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+  }
+
+  .subscribe-wrap {
+    margin-top: var(--space-8);
+  }
+
   /* Responsive */
   @media (max-width: 1024px) {
     .post-layout {
@@ -384,6 +575,10 @@ const base = import.meta.env.BASE_URL;
 
     .post-content {
       font-size: var(--text-base);
+    }
+
+    .series-links {
+      grid-template-columns: 1fr;
     }
   }
 </style>

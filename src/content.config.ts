@@ -8,6 +8,10 @@ const blog = defineCollection({
     description: z.string(),
     date: z.coerce.date(),
     tags: z.array(z.string()),
+    series: z.object({
+      name: z.string(),
+      order: z.number(),
+    }).optional(),
     draft: z.boolean().optional().default(false),
     author: z.string().optional().default('Star Cheng'),
     featured: z.boolean().optional().default(false),

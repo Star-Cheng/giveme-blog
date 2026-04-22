@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .filter(p => !p.data.draft && p.data.series)
+  .sort((a, b) => {
+    const aName = a.data.series?.name ?? '';
+    const bName = b.data.series?.name ?? '';
+    if (aName !== bName) return aName.localeCompare(bName);
+    return (a.data.series?.order ?? 0) - (b.data.series?.order ?? 0);
+  });
+
+const base = import.meta.env.BASE_URL;
+const toSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u4e00-\u9fa5-]/g, '');
+
+const grouped = posts.reduce((acc, post) => {
+  const name = post.data.series?.name;
+  if (!name) return acc;
+  if (!acc[name]) acc[name] = [];
+  acc[name].push(post);
+  return acc;
+}, {} as Record<string, typeof posts>);
+
+const seriesList = Object.entries(grouped).map(([name, items]) => ({
+  name,
+  slug: toSlug(name),
+  count: items.length,
+  latestDate: items[items.length - 1]?.data.date ?? items[0].data.date,
+  items,
+}));
+---
+
+<BaseLayout title="系列专题 - 技术随笔" description="将相关文章打包为可连续阅读的专题内容">
+  <section class="series-page">
+    <div class="container">
+      <header class="page-header">
+        <h1 class="page-title">系列专题</h1>
+        <p class="page-subtitle">共 {seriesList.length} 个系列，覆盖控制、导航与工程实践</p>
+      </header>
+
+      <div class="series-grid">
+        {seriesList.map(series => (
+          <a href={`${base}series/${series.slug}`} class="series-card">
+            <div class="series-meta">
+              <span>{series.count} 篇</span>
+              <span>{series.latestDate.toLocaleDateString('zh-CN')}</span>
+            </div>
+            <h2 class="series-name">{series.name}</h2>
+            <ul class="series-posts">
+              {series.items.slice(0, 3).map(post => (
+                <li>{post.data.title}</li>
+              ))}
+            </ul>
+            <span class="series-link">进入系列 →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .series-page {
+    padding: var(--space-section) 0;
+  }
+
+  .page-header {
+    margin-bottom: var(--space-12);
+    text-align: center;
+  }
+
+  .page-title {
+    margin-bottom: var(--space-3);
+  }
+
+  .page-subtitle {
+    color: var(--color-text-subtle);
+  }
+
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .series-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    transition: all var(--duration-fast);
+    color: var(--color-text);
+  }
+
+  .series-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .series-meta {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-text-subtle);
+    font-size: var(--text-xs);
+  }
+
+  .series-name {
+    font-size: var(--text-xl);
+  }
+
+  .series-posts {
+    margin: 0;
+    padding-left: var(--space-5);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .series-link {
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+  }
+</style>
