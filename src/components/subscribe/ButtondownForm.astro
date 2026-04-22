@@ -29,8 +29,6 @@ const isConfigured = Boolean(action);
       action={action}
       method="post"
       target="popupwindow"
-      onsubmit="window.open('https://buttondown.email/' + (this.dataset.username || ''), 'popupwindow')"
-      data-username={username ?? ''}
     >
       <label class="sr-only" for="bd-email">邮箱地址</label>
       <input id="bd-email" type="email" name="email" placeholder="输入你的邮箱" required />
