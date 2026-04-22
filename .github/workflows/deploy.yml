@@ -39,6 +39,18 @@ jobs:
         run: pnpm build
         env:
           SITE_URL: https://star-cheng.github.io
+          PUBLIC_GISCUS_REPO: Star-Cheng/giveme-blog
+          PUBLIC_GISCUS_REPO_ID: R_kgDOSClJTA
+          PUBLIC_GISCUS_CATEGORY: Announcements
+          PUBLIC_GISCUS_CATEGORY_ID: DIC_kwDOSClJTM4C7bdC
+          PUBLIC_GISCUS_MAPPING: pathname
+          PUBLIC_GISCUS_STRICT: '0'
+          PUBLIC_GISCUS_REACTIONS_ENABLED: '1'
+          PUBLIC_GISCUS_EMIT_METADATA: '0'
+          PUBLIC_GISCUS_INPUT_POSITION: bottom
+          PUBLIC_GISCUS_LANG: zh-CN
+          PUBLIC_BUTTONDOWN_USERNAME: gengyangming
+          PUBLIC_BUTTONDOWN_ACTION: https://buttondown.email/api/emails/embed-subscribe/gengyangming
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
