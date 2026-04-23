@@ -3,11 +3,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
 const posts = await getCollection('blog');
-const allTags = [...new Set(posts.flatMap(p => p.data.tags))].sort();
+const allTags = ['运动规划', '强化学习', 'Sim2Real', '机器人仿真'];
 const base = import.meta.env.BASE_URL;
 
 const tagCounts = allTags.reduce((acc, tag) => {
-  acc[tag] = posts.filter(p => p.data.tags.includes(tag)).length;
+  acc[tag] = posts.filter(p => p.data.category === tag || p.data.tags.includes(tag)).length;
   return acc;
 }, {} as Record<string, number>);
 ---

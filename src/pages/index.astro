@@ -1,345 +1,461 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import ButtondownForm from '../components/subscribe/ButtondownForm.astro';
 
 const posts = (await getCollection('blog'))
   .filter(p => !p.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const featuredPosts = posts.filter(p => p.data.featured);
-const recentPosts = posts.slice(0, 5);
+const latestPosts = posts.slice(0, 3);
+const featuredPost = latestPosts[0];
+const sidePosts = latestPosts.slice(1);
 const base = import.meta.env.BASE_URL;
+const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
 ---
 
-<BaseLayout title="技术随笔 - C++, ROS, Python">
+<BaseLayout title="机器人控制实战笔记 - RobotControl.dev">
   <section class="hero">
     <div class="container">
-      <div class="hero-content">
+      <div class="hero-inner">
+        <span class="hero-badge">从理论到真机</span>
         <h1 class="hero-title">
-          <span class="hero-line">技术随笔</span>
+          <span>机器人控制</span>
+          <span class="accent">实战笔记</span>
         </h1>
         <p class="hero-subtitle">
-          探索 C++ 深度、ROS 机器人、Python 异步<br />
-          在代码的世界里寻找技术的本质
+          专注运动规划、强化学习、Sim2Real 领域，<br />
+          分享从算法理论到工业落地的完整工程经验。
         </p>
-        <div class="hero-tags">
-          <span class="tag">C++</span>
-          <span class="tag">ROS2</span>
-          <span class="tag">Python</span>
-          <span class="tag">系统设计</span>
+        <div class="hero-actions">
+          <a href={`${base}blog`} class="btn btn-primary">浏览文章</a>
+          <a href={`${base}about`} class="btn btn-ghost">关于我</a>
+        </div>
+        <div class="hero-arrow" aria-hidden="true">⌄</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="latest">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">技术笔记</p>
+          <h2>最新文章</h2>
+        </div>
+        <a href={`${base}blog`} class="all-link">查看全部 →</a>
+      </div>
+
+      <div class="latest-grid">
+        {featuredPost && (
+          <a href={`${base}blog/${featuredPost.id}`} class="article-card article-card-main">
+            <span class="article-type">{featuredPost.data.category ?? '技术实战'}</span>
+            <h3>{featuredPost.data.title}</h3>
+            <p>{featuredPost.data.description}</p>
+            <div class="article-tags">
+              {featuredPost.data.tags.slice(0, 3).map(tag => (
+                <span>{tag}</span>
+              ))}
+              {featuredPost.data.tags.length > 3 && <span>+{featuredPost.data.tags.length - 3}</span>}
+            </div>
+            <div class="article-meta">
+              <span>{dateFormatter.format(featuredPost.data.date)}</span>
+              <span>·</span>
+              <span>{featuredPost.data.readingMinutes ?? 18} 分钟</span>
+            </div>
+          </a>
+        )}
+
+        <div class="latest-side">
+          {sidePosts.map(post => (
+            <a href={`${base}blog/${post.id}`} class="article-card">
+              <span class="article-type">{post.data.category ?? '技术笔记'}</span>
+              <h3>{post.data.title}</h3>
+              <p>{post.data.description}</p>
+              <div class="article-tags">
+                {post.data.tags.slice(0, 3).map(tag => (
+                  <span>{tag}</span>
+                ))}
+                {post.data.tags.length > 3 && <span>+{post.data.tags.length - 3}</span>}
+              </div>
+              <div class="article-meta">
+                <span>{dateFormatter.format(post.data.date)}</span>
+                <span>·</span>
+                <span>{post.data.readingMinutes ?? 18} 分钟</span>
+              </div>
+            </a>
+          ))}
         </div>
       </div>
+      {!latestPosts.length && <p class="latest-empty">还没有发布文章，先去写第一篇吧。</p>}
     </div>
   </section>
 
-  <section class="featured">
+  <section class="category-showcase">
     <div class="container">
-      <h2 class="section-title">精选文章</h2>
-      <div class="featured-grid">
-        {featuredPosts.map(post => (
-          <a href={`${base}blog/${post.id}`} class="post-card featured-card">
-            <div class="post-meta">
-              <time datetime={post.data.date.toISOString()}>
-                {post.data.date.toLocaleDateString('zh-CN')}
-              </time>
-              <span class="post-tags">
-                {post.data.tags.slice(0, 2).map(tag => (
-                  <span class="post-tag">{tag}</span>
-                ))}
-              </span>
-            </div>
-            <h3 class="post-title">{post.data.title}</h3>
-            <p class="post-desc">{post.data.description}</p>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
+      <header class="showcase-header">
+        <h2>技术分类</h2>
+        <p>覆盖机器人控制算法的核心领域，从理论到实践</p>
+      </header>
 
-  <section class="recent">
-    <div class="container">
-      <div class="recent-header">
-        <h2 class="section-title">最新文章</h2>
-          <a href={`${base}blog`} class="view-all">查看全部 →</a>
+      <div class="category-grid">
+        <a href={`${base}blog`} class="category-card category-plan">
+          <span class="category-icon">↗</span>
+          <h3>运动规划</h3>
+          <p>轨迹规划、插值算法、避障策略</p>
+        </a>
+        <a href={`${base}blog`} class="category-card category-rl">
+          <span class="category-icon">⎇</span>
+          <h3>强化学习</h3>
+          <p>Policy Gradient、DQN、Transformer</p>
+        </a>
+        <a href={`${base}blog`} class="category-card category-sim">
+          <span class="category-icon">◎</span>
+          <h3>Sim2Real</h3>
+          <p>域随机化、领域适应、系统辨识</p>
+        </a>
+        <a href={`${base}blog`} class="category-card category-robot">
+          <span class="category-icon">◻</span>
+          <h3>机器人仿真</h3>
+          <p>Gazebo、Webots、ROS2仿真</p>
+        </a>
       </div>
-      <div class="post-list">
-        {recentPosts.map((post, index) => (
-          <a href={`${base}blog/${post.id}`} class="post-item" style={`--delay: ${index * 0.1}s`}>
-            <time class="post-date" datetime={post.data.date.toISOString()}>
-              {post.data.date.toLocaleDateString('zh-CN')}
-            </time>
-            <div class="post-info">
-              <h3 class="post-title">{post.data.title}</h3>
-              <p class="post-desc">{post.data.description}</p>
-            </div>
-            <div class="post-tags">
-              {post.data.tags.slice(0, 2).map(tag => (
-                <span class="post-tag">{tag}</span>
-              ))}
-            </div>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="subscribe-cta">
-    <div class="container">
-      <ButtondownForm
-        title="订阅每周技术更新"
-        description="聚焦机器人控制、导航与工程实践，每周精选发送到你的邮箱。"
-      />
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  /* Hero Section */
   .hero {
-    padding: var(--space-section) 0;
-    border-bottom: 1px solid var(--color-border);
+    min-height: 68vh;
+    display: grid;
+    place-items: center;
+    border-bottom: 1px solid rgba(74, 85, 104, 0.25);
   }
 
-  .hero-content {
-    max-width: 800px;
+  .hero-inner {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(0, 212, 168, 0.35);
+    border-radius: 999px;
+    background: rgba(0, 212, 168, 0.08);
+    color: #37dfba;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    margin-bottom: 24px;
   }
 
   .hero-title {
-    font-size: var(--text-hero);
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: var(--space-6);
-    overflow: hidden;
+    font-size: clamp(2.6rem, 5.5vw, 4.8rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
   }
 
-  .hero-line {
-    display: block;
-    animation: slideUp 0.8s var(--ease-out-expo) forwards;
-    opacity: 0;
-    transform: translateY(40px);
-  }
-
-  @keyframes slideUp {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  .hero-title span { display: block; }
+  .hero-title .accent { color: #00d4a8; }
 
   .hero-subtitle {
-    font-size: var(--text-lg);
-    color: var(--color-text-muted);
-    line-height: var(--leading-relaxed);
-    margin-bottom: var(--space-8);
-    animation: fadeIn 1s var(--ease-out-expo) 0.2s forwards;
-    opacity: 0;
+    color: #8f9bb0;
+    font-size: clamp(1rem, 1.4vw, 1.22rem);
+    margin-bottom: 30px;
   }
 
-  .hero-tags {
+  .hero-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    animation: fadeIn 1s var(--ease-out-expo) 0.4s forwards;
-    opacity: 0;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 28px;
   }
 
-  .tag {
-    padding: var(--space-2) var(--space-4);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
-
-  /* Featured Section */
-  .featured {
-    padding: var(--space-section) 0;
-  }
-
-  .section-title {
-    font-size: var(--text-2xl);
-    margin-bottom: var(--space-8);
-    position: relative;
-  }
-
-  .section-title::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -8px;
-    width: 40px;
-    height: 2px;
-    background: var(--color-accent);
-  }
-
-  .featured-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: var(--space-6);
-  }
-
-  .post-card {
-    display: block;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    transition: all var(--duration-normal) var(--ease-out-expo);
-  }
-
-  .post-card:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-glow);
-  }
-
-  .post-meta {
-    display: flex;
+  .btn {
+    display: inline-flex;
     align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-4);
-    font-size: var(--text-sm);
-    color: var(--color-text-subtle);
+    justify-content: center;
+    min-width: 108px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-size: 0.93rem;
   }
 
-  .post-tags {
+  .btn-primary {
+    background: linear-gradient(135deg, #00d4a8, #00c89e);
+    color: #04131c;
+  }
+
+  .btn-ghost {
+    border-color: rgba(135, 148, 171, 0.35);
+    color: #dbe2ef;
+    background: rgba(15, 23, 38, 0.7);
+  }
+
+  .hero-arrow {
+    color: #6f7b91;
+    font-size: 1.1rem;
+  }
+
+  .latest {
+    padding: var(--space-section) 0 2.8rem;
+  }
+
+  .section-head {
     display: flex;
-    gap: var(--space-2);
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    gap: 1rem;
   }
 
-  .post-tag {
-    padding: 2px 8px;
-    background: var(--color-bg-tertiary);
-    border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
+  .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #00cda5;
+    font-size: 0.85rem;
+    margin: 0 0 6px;
   }
 
-  .post-title {
-    font-size: var(--text-xl);
-    margin-bottom: var(--space-3);
-    color: var(--color-text);
-    transition: color var(--duration-fast);
+  .section-kicker::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(0, 212, 168, 0.42);
+    border-radius: 4px;
+    background: radial-gradient(circle at 30% 30%, rgba(0, 212, 168, 0.55), rgba(0, 212, 168, 0.08));
   }
 
-  .post-card:hover .post-title {
-    color: var(--color-accent);
+  .section-head h2 {
+    font-size: clamp(2.1rem, 3.8vw, 3.2rem);
+    line-height: 1.1;
   }
 
-  .post-desc {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    line-height: var(--leading-relaxed);
+  .all-link {
+    color: #c8d3e3;
+    border: 1px solid rgba(116, 128, 150, 0.35);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+
+  .all-link:hover {
+    color: #00d4a8;
+    border-color: rgba(0, 212, 168, 0.45);
+  }
+
+  .latest-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .latest-side {
+    display: grid;
+    gap: 18px;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .article-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border: 1px solid rgba(58, 70, 92, 0.45);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(12, 19, 32, 0.96), rgba(10, 15, 26, 0.96));
+    padding: 1.35rem 1.35rem 1.2rem;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    min-height: 260px;
+  }
+
+  .article-card:hover {
+    border-color: rgba(0, 212, 168, 0.48);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(1, 12, 23, 0.45);
+  }
+
+  .article-type {
+    display: inline-block;
+    font-size: 0.74rem;
+    color: #00d9ae;
+    background: rgba(0, 212, 168, 0.09);
+    border: 1px solid rgba(0, 212, 168, 0.24);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+  }
+
+  .article-card h3 {
+    font-size: clamp(1.2rem, 1.5vw, 1.82rem);
+    line-height: 1.35;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  /* Recent Section */
-  .recent {
-    padding: var(--space-section) 0;
-  }
-
-  .subscribe-cta {
-    padding: 0 0 var(--space-section);
-  }
-
-  .recent-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-8);
-  }
-
-  .recent-header .section-title {
-    margin-bottom: 0;
-  }
-
-  .recent-header .section-title::after {
-    display: none;
-  }
-
-  .view-all {
-    color: var(--color-accent);
-    font-size: var(--text-sm);
-    transition: color var(--duration-fast);
-  }
-
-  .view-all:hover {
-    color: var(--color-accent-hover);
-  }
-
-  .post-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .post-item {
-    display: grid;
-    grid-template-columns: 100px 1fr auto;
-    gap: var(--space-6);
-    align-items: center;
-    padding: var(--space-5);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    transition: all var(--duration-normal) var(--ease-out-expo);
-    opacity: 0;
-    animation: fadeInUp 0.5s var(--ease-out-expo) var(--delay, 0s) forwards;
-  }
-
-  .post-item:hover {
-    border-color: var(--color-accent);
-    transform: translateX(8px);
-  }
-
-  .post-date {
-    font-size: var(--text-sm);
-    color: var(--color-text-subtle);
-    font-family: var(--font-mono);
-  }
-
-  .post-info .post-title {
-    font-size: var(--text-base);
-    margin-bottom: var(--space-2);
-  }
-
-  .post-info .post-desc {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
+  .article-card p {
+    margin: 0;
+    color: #90a0b9;
+    font-size: 0.94rem;
+    line-height: 1.65;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  @media (max-width: 768px) {
-    .post-item {
+  .article-meta {
+    margin-top: auto;
+    padding-top: 14px;
+    display: flex;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #738097;
+  }
+
+  .article-tags {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .article-tags span {
+    font-size: 0.73rem;
+    color: #00d0a8;
+    background: rgba(0, 212, 168, 0.08);
+    border: 1px solid rgba(0, 212, 168, 0.22);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+
+  .article-card-main {
+    min-height: 278px;
+  }
+
+  .article-card-main p {
+    -webkit-line-clamp: 3;
+  }
+
+  .latest-empty {
+    margin: 16px 0 0;
+    padding: 14px 16px;
+    border: 1px dashed rgba(90, 101, 126, 0.4);
+    border-radius: 12px;
+    color: #8e9cb3;
+  }
+
+  .category-showcase {
+    padding: var(--space-section) 0 2.5rem;
+  }
+
+  .showcase-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .showcase-header h2 {
+    font-size: clamp(2rem, 3.6vw, 3rem);
+    margin-bottom: 10px;
+  }
+
+  .showcase-header p {
+    margin: 0;
+    color: #8c98ae;
+    font-size: 1.05rem;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .category-card {
+    min-height: 180px;
+    border: 1px solid rgba(58, 70, 92, 0.45);
+    border-radius: 24px;
+    padding: 24px 22px;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+
+  .category-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 212, 168, 0.48);
+  }
+
+  .category-plan { background: linear-gradient(140deg, rgba(0, 212, 168, 0.18), rgba(8, 25, 43, 0.9)); }
+  .category-rl { background: linear-gradient(140deg, rgba(56, 189, 248, 0.2), rgba(15, 24, 44, 0.9)); }
+  .category-sim { background: linear-gradient(140deg, rgba(168, 85, 247, 0.2), rgba(23, 21, 46, 0.9)); }
+  .category-robot { background: linear-gradient(140deg, rgba(245, 158, 11, 0.24), rgba(30, 23, 13, 0.9)); }
+
+  .category-icon {
+    display: inline-flex;
+    margin-bottom: 14px;
+    color: #00e0b3;
+    font-size: 1.65rem;
+    font-weight: 700;
+  }
+
+  .category-card h3 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
+  .category-card p {
+    margin: 0;
+    color: #95a0b8;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 960px) {
+    .latest-grid {
       grid-template-columns: 1fr;
-      gap: var(--space-3);
     }
 
-    .post-tags {
-      display: none;
+    .latest-side {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+    }
+
+    .category-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
+  @media (max-width: 720px) {
+    .hero-actions {
+      flex-direction: column;
+      align-items: center;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    .btn { width: min(300px, 100%); }
+
+    .latest-side {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+
+    .section-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .category-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

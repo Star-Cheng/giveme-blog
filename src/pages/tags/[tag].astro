@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  const tags = [...new Set(posts.flatMap(p => p.data.tags))];
+  const tags = ['运动规划', '强化学习', 'Sim2Real', '机器人仿真'];
 
   return tags.map(tag => ({
     params: { tag },
@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 
 const { tag, posts } = Astro.props;
 const filteredPosts = posts
-  .filter(p => p.data.tags.includes(tag))
+  .filter(p => p.data.category === tag || p.data.tags.includes(tag))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const base = import.meta.env.BASE_URL;
 ---

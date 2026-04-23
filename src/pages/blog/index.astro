@@ -6,7 +6,9 @@ const posts = (await getCollection('blog'))
   .filter(p => !p.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const allTags = [...new Set(posts.flatMap(p => p.data.tags))].sort();
+const allTags = ['机械臂', '运动控制', '轨迹规划', '系统集成', '手眼标定', '标定算法', '视觉伺服', '误差建模', '奇异点', '阻尼最小二乘', '逆运动学'];
+const allCategories = ['运动规划', '强化学习', 'Sim2Real', '机器人仿真'];
+const allMonths = ['2026年4月'];
 const base = import.meta.env.BASE_URL;
 ---
 
@@ -14,118 +16,173 @@ const base = import.meta.env.BASE_URL;
   <section class="blog-page">
     <div class="container">
       <header class="page-header">
-        <h1 class="page-title">所有文章</h1>
+        <h1 class="page-title">文章列表</h1>
         <p class="page-subtitle">共 {posts.length} 篇文章</p>
       </header>
 
-      <div class="blog-layout">
-        <aside class="sidebar">
-          <h3 class="sidebar-title">筛选</h3>
-          <label class="search-label" for="post-search">搜索标题 / 标签</label>
-          <input id="post-search" class="search-input" type="search" placeholder="例如：ROS2 / 协程" />
+      <div class="search-wrap">
+        <input id="post-search" class="search-input" type="search" placeholder="搜索文章标题或标签..." />
+      </div>
 
-          <div class="filter-meta">
-            <span id="active-tag-count">已选标签：0</span>
-            <button type="button" id="clear-filters" class="clear-btn">清空</button>
-          </div>
-
-          <div class="tag-list" id="tag-filters">
-            {allTags.map(tag => (
-              <button type="button" class="tag-item" data-tag={tag.toLowerCase()}>{tag}</button>
+      <section class="filters-panel">
+        <div class="filter-block">
+          <h3>分类</h3>
+          <div class="chip-row" id="category-filters">
+            <button type="button" class="chip active" data-category="all">全部</button>
+            {allCategories.map(cat => (
+              <button type="button" class="chip" data-category={cat.toLowerCase()}>{cat}</button>
             ))}
           </div>
-        </aside>
+        </div>
 
-        <main class="post-grid" id="post-grid">
-          {posts.map((post, index) => (
+        <div class="filter-block">
+          <h3>归档</h3>
+          <div class="chip-row" id="month-filters">
+            <button type="button" class="chip active" data-month="all">全部</button>
+            {allMonths.map(month => (
+              <button type="button" class="chip" data-month={month}>{month}</button>
+            ))}
+          </div>
+        </div>
+
+        <div class="filter-block">
+          <h3>标签</h3>
+          <div class="chip-row chips-tags" id="tag-filters">
+            {allTags.map(tag => (
+              <button type="button" class="chip tag-chip" data-tag={tag.toLowerCase()}>{tag}</button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <p class="result-text" id="result-text">共找到 {posts.length} 篇文章</p>
+
+      <main class="post-grid" id="post-grid">
+        {posts.map((post, index) => {
+          const postMonth = `${post.data.date.getFullYear()}年${post.data.date.getMonth() + 1}月`;
+          const category = post.data.category ?? '运动规划';
+          return (
             <a
               href={`${base}blog/${post.id}`}
               class="post-card"
               data-post-card
               data-title={post.data.title.toLowerCase()}
               data-tags={post.data.tags.join(',').toLowerCase()}
-              style={`--delay: ${Math.min(index, 10) * 0.05}s`}
+              data-category={category.toLowerCase()}
+              data-month={postMonth}
+              style={`--delay: ${Math.min(index, 12) * 0.04}s`}
             >
-              <div class="post-meta">
-                <time datetime={post.data.date.toISOString()}>
-                  {post.data.date.toLocaleDateString('zh-CN')}
-                </time>
-                <span class="reading-time">阅读</span>
-              </div>
+              <span class="card-category">{category}</span>
               <h2 class="post-title">{post.data.title}</h2>
               <p class="post-desc">{post.data.description}</p>
               <div class="post-tags">
-                {post.data.tags.map(tag => (
+                {post.data.tags.slice(0, 3).map(tag => (
                   <span class="post-tag">{tag}</span>
                 ))}
+                {post.data.tags.length > 3 && (
+                  <span class="post-tag post-tag-extra">+{post.data.tags.length - 3}</span>
+                )}
+              </div>
+              <div class="post-meta">
+                <span>{post.data.date.toLocaleDateString('zh-CN')}</span>
+                <span>·</span>
+                <span>{post.data.readingMinutes} 分钟</span>
               </div>
             </a>
-          ))}
-          <p id="empty-state" class="empty-state" hidden>没有匹配的文章，试试减少筛选条件。</p>
-        </main>
-      </div>
+          );
+        })}
+        <p id="empty-state" class="empty-state" hidden>没有匹配的文章，请调整筛选条件。</p>
+      </main>
     </div>
   </section>
 </BaseLayout>
 
 <script>
-  const searchInput = document.querySelector('#post-search');
-  const tagButtons = Array.from(document.querySelectorAll('#tag-filters .tag-item'));
-  const clearButton = document.querySelector('#clear-filters');
-  const postCards = Array.from(document.querySelectorAll('[data-post-card]'));
-  const emptyState = document.querySelector('#empty-state');
-  const activeTagCount = document.querySelector('#active-tag-count');
-  const selectedTags = new Set();
+  const setupBlogFilters = () => {
+    const blogPage = document.querySelector('.blog-page');
+    if (!blogPage || blogPage.getAttribute('data-filters-ready') === 'true') return;
+    blogPage.setAttribute('data-filters-ready', 'true');
 
-  const updateUI = () => {
-    const keyword = searchInput?.value.trim().toLowerCase() ?? '';
+    const searchInput = document.querySelector('#post-search');
+    const postCards = Array.from(document.querySelectorAll('[data-post-card]'));
+    const emptyState = document.querySelector('#empty-state');
+    const resultText = document.querySelector('#result-text');
 
-    let visibleCount = 0;
-    postCards.forEach(card => {
-      const title = card.getAttribute('data-title') || '';
-      const tags = (card.getAttribute('data-tags') || '').split(',').filter(Boolean);
-      const keywordMatch = !keyword || title.includes(keyword) || tags.some(tag => tag.includes(keyword));
-      const tagMatch = selectedTags.size === 0 || [...selectedTags].every(tag => tags.includes(tag));
-      const visible = keywordMatch && tagMatch;
-      card.hidden = !visible;
-      if (visible) visibleCount += 1;
+    const categoryButtons = Array.from(document.querySelectorAll('#category-filters .chip'));
+    const monthButtons = Array.from(document.querySelectorAll('#month-filters .chip'));
+    const tagButtons = Array.from(document.querySelectorAll('#tag-filters .chip'));
+
+    if (!postCards.length) return;
+
+    let selectedCategory = 'all';
+    let selectedMonth = 'all';
+    let selectedTag = 'all';
+
+    const activateSingle = (buttons, activeButton) => {
+      buttons.forEach(btn => btn.classList.remove('active'));
+      activeButton.classList.add('active');
+    };
+
+    const updateUI = () => {
+      const keyword = searchInput?.value.trim().toLowerCase() ?? '';
+      let visibleCount = 0;
+
+      postCards.forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        const tags = (card.getAttribute('data-tags') || '').split(',').filter(Boolean);
+        const category = card.getAttribute('data-category') || '';
+        const month = card.getAttribute('data-month') || '';
+
+        const keywordMatch = !keyword || title.includes(keyword) || tags.some(tag => tag.includes(keyword));
+        const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
+        const monthMatch = selectedMonth === 'all' || month === selectedMonth;
+        const tagMatch = selectedTag === 'all' || tags.includes(selectedTag);
+
+        const visible = keywordMatch && categoryMatch && monthMatch && tagMatch;
+        card.hidden = !visible;
+        if (visible) visibleCount += 1;
+      });
+
+      if (emptyState) emptyState.hidden = visibleCount > 0;
+      if (resultText) resultText.textContent = `共找到 ${visibleCount} 篇文章`;
+    };
+
+    categoryButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        selectedCategory = button.getAttribute('data-category') || 'all';
+        activateSingle(categoryButtons, button);
+        updateUI();
+      });
     });
 
-    if (emptyState) {
-      emptyState.hidden = visibleCount > 0;
-    }
+    monthButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        selectedMonth = button.getAttribute('data-month') || 'all';
+        activateSingle(monthButtons, button);
+        updateUI();
+      });
+    });
 
-    if (activeTagCount) {
-      activeTagCount.textContent = `已选标签：${selectedTags.size}`;
-    }
+    tagButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const nextTag = button.getAttribute('data-tag') || 'all';
+        const isSameTag = selectedTag === nextTag;
+        selectedTag = isSameTag ? 'all' : nextTag;
+
+        tagButtons.forEach(btn => btn.classList.remove('active'));
+        if (!isSameTag) {
+          button.classList.add('active');
+        }
+        updateUI();
+      });
+    });
+
+    searchInput?.addEventListener('input', updateUI);
+    updateUI();
   };
 
-  searchInput?.addEventListener('input', updateUI);
-
-  tagButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const tag = button.getAttribute('data-tag');
-      if (!tag) return;
-
-      if (selectedTags.has(tag)) {
-        selectedTags.delete(tag);
-        button.classList.remove('active');
-      } else {
-        selectedTags.add(tag);
-        button.classList.add('active');
-      }
-      updateUI();
-    });
-  });
-
-  clearButton?.addEventListener('click', () => {
-    selectedTags.clear();
-    tagButtons.forEach(button => button.classList.remove('active'));
-    if (searchInput) {
-      searchInput.value = '';
-    }
-    updateUI();
-  });
+  document.addEventListener('DOMContentLoaded', setupBlogFilters);
+  document.addEventListener('astro:page-load', setupBlogFilters);
 </script>
 
 <style>
@@ -134,220 +191,187 @@ const base = import.meta.env.BASE_URL;
   }
 
   .page-header {
-    margin-bottom: var(--space-12);
-    text-align: center;
+    margin-bottom: 18px;
   }
 
   .page-title {
-    font-size: var(--text-4xl);
-    margin-bottom: var(--space-4);
+    font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+    margin-bottom: 6px;
   }
 
   .page-subtitle {
-    color: var(--color-text-subtle);
+    color: #8f9ab0;
+    margin: 0;
+    font-size: 1.05rem;
   }
 
-  .blog-layout {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: var(--space-12);
-  }
-
-  .sidebar {
-    position: sticky;
-    top: 100px;
-    height: fit-content;
-  }
-
-  .sidebar-title {
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-text-subtle);
-    margin-bottom: var(--space-4);
-  }
-
-  .search-label {
-    display: block;
-    margin-bottom: var(--space-2);
-    font-size: var(--text-sm);
-    color: var(--color-text-subtle);
+  .search-wrap {
+    margin-bottom: 18px;
   }
 
   .search-input {
     width: 100%;
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-secondary);
-    color: var(--color-text);
-    margin-bottom: var(--space-4);
+    border: 1px solid rgba(90, 101, 126, 0.35);
+    border-radius: 16px;
+    background: rgba(15, 23, 38, 0.78);
+    color: #f3f7ff;
+    padding: 14px 16px;
+    font-size: 1rem;
   }
 
   .search-input::placeholder {
-    color: var(--color-text-subtle);
+    color: #75829a;
   }
 
-  .filter-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-3);
-    font-size: var(--text-xs);
-    color: var(--color-text-subtle);
+  .filters-panel {
+    border: 1px solid rgba(58, 70, 92, 0.45);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(12, 19, 32, 0.9), rgba(10, 15, 26, 0.92));
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+    margin-bottom: 16px;
   }
 
-  .clear-btn {
-    border: 1px solid var(--color-border);
-    background: transparent;
-    color: var(--color-text-subtle);
-    border-radius: var(--radius-sm);
-    padding: 2px 8px;
-    cursor: pointer;
+  .filter-block h3 {
+    color: #7e8ba6;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
   }
 
-  .clear-btn:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-
-  .tag-list {
+  .chip-row {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: 8px;
   }
 
-  .tag-item {
-    border: 1px solid var(--color-border);
-    background: transparent;
+  .chip {
+    border: 1px solid rgba(90, 101, 126, 0.35);
+    background: rgba(15, 22, 36, 0.75);
+    color: #c6d0e1;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.86rem;
     cursor: pointer;
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    transition: all var(--duration-fast);
+    transition: all .2s;
   }
 
-  .tag-item:hover,
-  .tag-item.active {
-    background: var(--color-bg-secondary);
-    color: var(--color-text);
+  .chip:hover,
+  .chip.active {
+    border-color: rgba(0, 212, 168, 0.5);
+    color: #00d4a8;
+    background: rgba(0, 212, 168, 0.09);
   }
 
-  .tag-item.active {
-    color: var(--color-accent);
-    border-color: var(--color-accent);
+  .chips-tags .chip {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
+  .result-text {
+    color: #8a96ae;
+    margin: 0 0 16px;
   }
 
   .post-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .post-card {
+    display: block;
+    border: 1px solid rgba(58, 70, 92, 0.45);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(12, 19, 32, 0.96), rgba(10, 15, 26, 0.96));
+    padding: 18px;
+    opacity: 0;
+    animation: fadeInUp 0.45s ease var(--delay, 0s) forwards;
+    transition: border-color .2s ease, transform .2s ease;
+  }
+
+  .post-card[hidden] {
+    display: none !important;
+  }
+
+  .post-card:hover {
+    border-color: rgba(0, 212, 168, 0.48);
+    transform: translateY(-2px);
+  }
+
+  .card-category {
+    display: inline-block;
+    font-size: 0.74rem;
+    color: #00d9ae;
+    background: rgba(0, 212, 168, 0.09);
+    border: 1px solid rgba(0, 212, 168, 0.24);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+  }
+
+  .post-title {
+    font-size: clamp(1.2rem, 1.4vw, 1.65rem);
+    line-height: 1.38;
+    margin-bottom: 10px;
+  }
+
+  .post-desc {
+    color: #90a0b9;
+    font-size: 0.94rem;
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .post-tags {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .post-tag {
+    font-size: 0.73rem;
+    color: #00d0a8;
+    background: rgba(0, 212, 168, 0.08);
+    border: 1px solid rgba(0, 212, 168, 0.22);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+
+  .post-tag-extra {
+    color: #99a5bc;
+    border-color: rgba(90, 101, 126, 0.28);
+    background: rgba(90, 101, 126, 0.08);
+  }
+
+  .post-meta {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    color: #6f7d95;
+    font-size: 0.8rem;
   }
 
   .empty-state {
     grid-column: 1 / -1;
     padding: var(--space-8);
-    border: 1px dashed var(--color-border);
+    border: 1px dashed rgba(90, 101, 126, 0.35);
     border-radius: var(--radius-lg);
-    color: var(--color-text-subtle);
+    color: #7f8ca5;
     text-align: center;
   }
 
-  .post-card {
-    display: block;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    transition: all var(--duration-normal) var(--ease-out-expo);
-    opacity: 0;
-    animation: fadeInUp 0.5s var(--ease-out-expo) var(--delay, 0s) forwards;
-  }
-
-  .post-card:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-glow);
-  }
-
-  .post-meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-4);
-    font-size: var(--text-sm);
-    color: var(--color-text-subtle);
-  }
-
-  .reading-time {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-  }
-
-  .post-title {
-    font-size: var(--text-xl);
-    margin-bottom: var(--space-3);
-    color: var(--color-text);
-    transition: color var(--duration-fast);
-  }
-
-  .post-card:hover .post-title {
-    color: var(--color-accent);
-  }
-
-  .post-desc {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    line-height: var(--leading-relaxed);
-    margin-bottom: var(--space-4);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .post-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .post-tag {
-    padding: 2px 8px;
-    background: var(--color-bg-tertiary);
-    border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
-    color: var(--color-text-subtle);
-  }
-
-  @media (max-width: 900px) {
-    .blog-layout {
+  @media (max-width: 860px) {
+    .post-grid {
       grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-      position: static;
-      display: flex;
-      gap: var(--space-4);
-      overflow-x: auto;
-      padding-bottom: var(--space-4);
-    }
-
-    .tag-list {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-
-    .tag-item {
-      white-space: nowrap;
     }
   }
 
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(14px);
     }
     to {
       opacity: 1;

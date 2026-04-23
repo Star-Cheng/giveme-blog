@@ -7,7 +7,9 @@ const blog = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.coerce.date(),
+    category: z.string().optional().default('运动规划'),
     tags: z.array(z.string()),
+    readingMinutes: z.number().optional().default(18),
     series: z.object({
       name: z.string(),
       order: z.number(),
